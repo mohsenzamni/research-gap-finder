@@ -17,18 +17,20 @@ public class ResearchService {
     private final PaperEvidenceRepository paperEvidence;
     private final GapRepository gaps;
     private final ValidationResultRepository validations;
+    private final GapEvidenceRepository gapEvidence;
     private final IdeaRepository ideas;
     private final LlmProvider llm;
     private final LiteratureSearchProvider literature;
 
     public ResearchService(ProjectRepository projects, PaperRepository papers, PaperEvidenceRepository paperEvidence, GapRepository gaps,
-                           ValidationResultRepository validations, IdeaRepository ideas,
+                           ValidationResultRepository validations, GapEvidenceRepository gapEvidence, IdeaRepository ideas,
                            LlmProvider llm, LiteratureSearchProvider literature) {
         this.projects = projects;
         this.papers = papers;
         this.paperEvidence = paperEvidence;
         this.gaps = gaps;
         this.validations = validations;
+        this.gapEvidence = gapEvidence;
         this.ideas = ideas;
         this.llm = llm;
         this.literature = literature;
@@ -69,6 +71,31 @@ public class ResearchService {
                 clamp(input.confidence(), 0, 1)));
     }
     public List<ResearchGap> gaps(UUID projectId) { return gaps.findByProjectId(projectId); }
+
+    @Transactional
+    public List<ResearchGap> discoverGaps(UUID projectId) {
+        ResearchProject project = project(projectId);
+        List<ResearchGap> discovered = new ArrayList<>();
+        for (Paper paper : papers.findByProjectId(projectId)) {
+            LlmProvider.PaperAnalysis analysis = llm.extract(paper);
+            for (String limitation : analysis.limitations()) {
+                String title = "Unresolved limitation in " + paper.getTitle();
+                boolean exists = gaps.findByProjectId(projectId).stream()
+                        .anyMatch(gap -> gap.getTitle().equals(title));
+                if (exists) continue;
+                ResearchGap gap = gaps.save(new ResearchGap(project, GapType.METHODOLOGICAL_GAP,
+                        title, limitation, 0.55));
+                gapEvidence.save(new GapEvidence(gap, paper, EvidenceType.LIMITATION, 0.8, limitation));
+                discovered.add(gap);
+            }
+        }
+        return discovered;
+    }
+
+    public List<GapEvidence> evidence(UUID gapId) {
+        if (!gaps.existsById(gapId)) throw missing("gap", gapId);
+        return gapEvidence.findByGapId(gapId);
+    }
 
     @Transactional
     public ValidationResult validateGap(UUID gapId) {

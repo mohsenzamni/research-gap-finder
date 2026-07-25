@@ -47,8 +47,11 @@ public class ResearchController {
         return service.addGap(projectId, new ResearchService.GapInput(request.type(), request.title(), request.description(), request.confidence()));
     }
     @GetMapping("/projects/{projectId}/gaps") public List<ResearchGap> gaps(@PathVariable UUID projectId) { return service.gaps(projectId); }
+    @PostMapping("/projects/{projectId}/gaps/discover")
+    public List<ResearchGap> discoverGaps(@PathVariable UUID projectId) { return service.discoverGaps(projectId); }
     @PostMapping("/gaps/{gapId}/validate") public ValidationResult validate(@PathVariable UUID gapId) { return service.validateGap(gapId); }
     @GetMapping("/gaps/{gapId}/validations") public List<ValidationResult> validations(@PathVariable UUID gapId) { return service.validations(gapId); }
+    @GetMapping("/gaps/{gapId}/evidence") public List<GapEvidence> evidence(@PathVariable UUID gapId) { return service.evidence(gapId); }
 
     @PostMapping("/projects/{projectId}/ideas")
     @ResponseStatus(HttpStatus.CREATED)
