@@ -14,6 +14,7 @@ public class ResearchService {
     private static final double HAS_RESULTS_CONFIDENCE = 0.50;
     private static final double DISCOVERED_GAP_CONFIDENCE = 0.55;
     private static final double LIMITATION_EVIDENCE_RELEVANCE = 0.80;
+    private static final int MAX_GAP_TITLE_CONTENT_LENGTH = 900;
     private final ProjectRepository projects;
     private final PaperRepository papers;
     private final PaperEvidenceRepository paperEvidence;
@@ -81,7 +82,7 @@ public class ResearchService {
         for (Paper paper : papers.findByProjectId(projectId)) {
             LlmProvider.PaperAnalysis analysis = llm.extract(paper);
             for (String limitation : analysis.limitations()) {
-                String title = "Unresolved limitation: " + shorten(limitation, 900);
+                String title = "Unresolved limitation: " + shorten(limitation, MAX_GAP_TITLE_CONTENT_LENGTH);
                 boolean exists = gaps.findByProjectId(projectId).stream()
                         .anyMatch(gap -> gap.getTitle().equals(title));
                 if (exists) continue;
@@ -109,7 +110,7 @@ public class ResearchService {
     }
 
     private String shorten(String value, int maxLength) {
-        return value.length() <= maxLength ? value : value.substring(0, maxLength - 1) + "…";
+        return value.length() <= maxLength ? value : value.substring(0, maxLength - 3) + "...";
     }
 
     public List<GapEvidence> evidence(UUID gapId) {

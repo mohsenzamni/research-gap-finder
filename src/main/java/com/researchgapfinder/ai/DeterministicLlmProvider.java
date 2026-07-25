@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DeterministicLlmProvider implements LlmProvider {
+    private static final String SENTENCE_BOUNDARY = "(?<=[.!?])\\s+";
+
     @Override
     public PaperAnalysis extract(Paper paper) {
         String text = paper.getFullText() != null && !paper.getFullText().isBlank()
@@ -29,7 +31,7 @@ public class DeterministicLlmProvider implements LlmProvider {
     }
 
     private String[] sentencesContaining(String text, String... markers) {
-        return java.util.Arrays.stream(text.split("(?<=[.!?])\\s+"))
+        return java.util.Arrays.stream(text.split(SENTENCE_BOUNDARY))
                 .map(String::trim)
                 .filter(sentence -> {
                     String lower = sentence.toLowerCase();
