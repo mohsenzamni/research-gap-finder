@@ -10,8 +10,8 @@ import java.util.*;
 
 @Service
 public class ResearchService {
-    private static final double PARTIAL_VALIDATION_CONFIDENCE = 0.35;
-    private static final double WEAK_VALIDATION_CONFIDENCE = 0.50;
+    private static final double NO_RESULTS_CONFIDENCE = 0.35;
+    private static final double HAS_RESULTS_CONFIDENCE = 0.50;
     private final ProjectRepository projects;
     private final PaperRepository papers;
     private final PaperEvidenceRepository paperEvidence;
@@ -80,7 +80,7 @@ public class ResearchService {
                 ? "No external records were returned; the candidate gap remains uncertain and requires further search."
                 : "External literature returned " + results.size() + " record(s); inspect them before treating this candidate as a gap.";
         ValidationResult result = validations.save(new ValidationResult(gap, status,
-                results.isEmpty() ? PARTIAL_VALIDATION_CONFIDENCE : WEAK_VALIDATION_CONFIDENCE,
+                results.isEmpty() ? NO_RESULTS_CONFIDENCE : HAS_RESULTS_CONFIDENCE,
                 summary, List.of(query)));
         gap.setStatus(status == ValidationStatus.PARTIALLY_VALIDATED ? GapStatus.PARTIALLY_VALIDATED : GapStatus.WEAK);
         gaps.save(gap);
