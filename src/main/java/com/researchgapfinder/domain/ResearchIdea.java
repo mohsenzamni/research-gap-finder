@@ -20,7 +20,12 @@ public class ResearchIdea {
     private Instant createdAt = Instant.now();
     protected ResearchIdea() {}
     public ResearchIdea(ResearchProject project, ResearchGap gap, String title, String question, String rationale, double score) {
-        this.project = project; this.gap = gap; this.title = title; this.researchQuestion = question; this.rationale = rationale; this.score = score;
+        this.project = project;
+        this.gap = gap;
+        this.title = title;
+        this.researchQuestion = question;
+        this.rationale = rationale;
+        this.score = score;
     }
     public UUID getId() { return id; }
     public ResearchProject getProject() { return project; }

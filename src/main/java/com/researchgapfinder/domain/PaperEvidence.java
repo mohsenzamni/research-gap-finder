@@ -14,7 +14,10 @@ public class PaperEvidence {
     private Instant extractedAt = Instant.now();
     protected PaperEvidence() {}
     public PaperEvidence(Paper paper, EvidenceLevel level, SourceType sourceType, String reference) {
-        this.paper = paper; this.evidenceLevel = level; this.sourceType = sourceType; this.sourceReference = reference;
+        this.paper = paper;
+        this.evidenceLevel = level;
+        this.sourceType = sourceType;
+        this.sourceReference = reference;
     }
     public UUID getId() { return id; }
     public Paper getPaper() { return paper; }

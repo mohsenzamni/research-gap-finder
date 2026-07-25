@@ -19,10 +19,14 @@ public class ResearchController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResearchProject createProject(@Valid @RequestBody ProjectRequest request) {
         ResearchProject project = new ResearchProject(request.name());
-        project.setResearchDomain(request.researchDomain()); project.setResearchArea(request.researchArea());
-        project.setIndustry(request.industry()); project.setGeography(request.geography());
-        project.setPreferredResearchType(request.preferredResearchType()); project.setPreferredMethods(request.preferredMethods());
-        project.setAvailableData(request.availableData()); project.setResearchGoal(request.researchGoal());
+        project.setResearchDomain(request.researchDomain());
+        project.setResearchArea(request.researchArea());
+        project.setIndustry(request.industry());
+        project.setGeography(request.geography());
+        project.setPreferredResearchType(request.preferredResearchType());
+        project.setPreferredMethods(request.preferredMethods());
+        project.setAvailableData(request.availableData());
+        project.setResearchGoal(request.researchGoal());
         return service.createProject(project);
     }
     @GetMapping("/projects") public List<ResearchProject> projects() { return service.projects(); }

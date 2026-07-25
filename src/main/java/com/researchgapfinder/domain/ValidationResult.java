@@ -15,7 +15,11 @@ public class ValidationResult {
     private Instant validatedAt = Instant.now();
     protected ValidationResult() {}
     public ValidationResult(ResearchGap gap, ValidationStatus status, double confidence, String summary, List<String> queries) {
-        this.gap = gap; this.status = status; this.confidence = confidence; this.summary = summary; this.searchedQueries.addAll(queries);
+        this.gap = gap;
+        this.status = status;
+        this.confidence = confidence;
+        this.summary = summary;
+        this.searchedQueries.addAll(queries);
     }
     public UUID getId() { return id; }
     public ResearchGap getGap() { return gap; }

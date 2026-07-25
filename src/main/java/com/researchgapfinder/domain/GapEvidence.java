@@ -13,7 +13,11 @@ public class GapEvidence {
     @Column(length = 3000) private String supportingStatement;
     protected GapEvidence() {}
     public GapEvidence(ResearchGap gap, Paper paper, EvidenceType type, double relevance, String statement) {
-        this.gap = gap; this.paper = paper; this.evidenceType = type; this.relevance = relevance; this.supportingStatement = statement;
+        this.gap = gap;
+        this.paper = paper;
+        this.evidenceType = type;
+        this.relevance = relevance;
+        this.supportingStatement = statement;
     }
     public UUID getId() { return id; }
     public ResearchGap getGap() { return gap; }

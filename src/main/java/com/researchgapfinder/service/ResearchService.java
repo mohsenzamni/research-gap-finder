@@ -22,8 +22,14 @@ public class ResearchService {
     public ResearchService(ProjectRepository projects, PaperRepository papers, PaperEvidenceRepository paperEvidence, GapRepository gaps,
                            ValidationResultRepository validations, IdeaRepository ideas,
                            LlmProvider llm, LiteratureSearchProvider literature) {
-        this.projects = projects; this.papers = papers; this.paperEvidence = paperEvidence; this.gaps = gaps; this.validations = validations;
-        this.ideas = ideas; this.llm = llm; this.literature = literature;
+        this.projects = projects;
+        this.papers = papers;
+        this.paperEvidence = paperEvidence;
+        this.gaps = gaps;
+        this.validations = validations;
+        this.ideas = ideas;
+        this.llm = llm;
+        this.literature = literature;
     }
 
     @Transactional
@@ -38,9 +44,12 @@ public class ResearchService {
                 ? EvidenceLevel.FULL_TEXT : input.abstractText() != null && !input.abstractText().isBlank()
                 ? EvidenceLevel.ABSTRACT : EvidenceLevel.METADATA;
         Paper paper = new Paper(project, input.title(), level);
-        paper.setAuthors(input.authors()); paper.setPublicationYear(input.publicationYear());
-        paper.setDoi(input.doi()); paper.setSourceUrl(input.sourceUrl());
-        paper.setAbstractText(input.abstractText()); paper.setFullText(input.fullText());
+        paper.setAuthors(input.authors());
+        paper.setPublicationYear(input.publicationYear());
+        paper.setDoi(input.doi());
+        paper.setSourceUrl(input.sourceUrl());
+        paper.setAbstractText(input.abstractText());
+        paper.setFullText(input.fullText());
         Paper saved = papers.save(paper);
         paperEvidence.save(new PaperEvidence(saved, level,
                 input.fullText() != null && !input.fullText().isBlank() ? SourceType.USER_UPLOAD : SourceType.USER_INPUT,

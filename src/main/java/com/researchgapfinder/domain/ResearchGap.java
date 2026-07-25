@@ -16,7 +16,11 @@ public class ResearchGap {
     private Instant createdAt = Instant.now();
     protected ResearchGap() {}
     public ResearchGap(ResearchProject project, GapType type, String title, String description, double confidence) {
-        this.project = project; this.type = type; this.title = title; this.description = description; this.confidence = confidence;
+        this.project = project;
+        this.type = type;
+        this.title = title;
+        this.description = description;
+        this.confidence = confidence;
     }
     public UUID getId() { return id; }
     public ResearchProject getProject() { return project; }

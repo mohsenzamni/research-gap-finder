@@ -21,7 +21,9 @@ public class Paper {
 
     protected Paper() {}
     public Paper(ResearchProject project, String title, EvidenceLevel level) {
-        this.project = project; this.title = title; this.evidenceLevel = level;
+        this.project = project;
+        this.title = title;
+        this.evidenceLevel = level;
     }
     @PreUpdate void touch() { updatedAt = Instant.now(); }
     public UUID getId() { return id; }
