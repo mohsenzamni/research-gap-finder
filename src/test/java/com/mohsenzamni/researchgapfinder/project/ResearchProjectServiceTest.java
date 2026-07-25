@@ -42,6 +42,14 @@ class ResearchProjectServiceTest {
     }
 
     @Test
+    void findsProjectById() {
+        ResearchProject project = new ResearchProject("Study", null, null, null, null, null);
+        when(repository.findById(42L)).thenReturn(Optional.of(project));
+
+        assertThat(service.findById(42L)).isSameAs(project);
+    }
+
+    @Test
     void rejectsMissingProject() {
         when(repository.findById(42L)).thenReturn(Optional.empty());
 
