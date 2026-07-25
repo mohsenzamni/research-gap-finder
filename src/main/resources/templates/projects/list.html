@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Projects')}"></head>
+<body class="bg-light">
+<nav th:replace="~{layout :: nav}"></nav>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Research projects</h1>
+        <a class="btn btn-primary" href="/projects/new">Create project</a>
+    </div>
+    <div th:if="${#lists.isEmpty(projects)}" class="alert alert-info">
+        No projects yet. Create one to get started.
+    </div>
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4" th:each="project : ${projects}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 card-title" th:text="${project.name}">Project name</h2>
+                    <p class="card-text text-muted" th:text="${project.researchDomain}">Research domain</p>
+                    <a class="btn btn-outline-primary" th:href="@{/projects/{id}(id=${project.id})}">View details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

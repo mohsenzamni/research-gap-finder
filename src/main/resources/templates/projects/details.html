@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Project details')}"></head>
+<body class="bg-light">
+<nav th:replace="~{layout :: nav}"></nav>
+<main class="container">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title" th:text="${project.name}">Project name</h1>
+            <dl class="row mt-4">
+                <dt class="col-sm-3">Research domain</dt><dd class="col-sm-9" th:text="${project.researchDomain}">—</dd>
+                <dt class="col-sm-3">Research area</dt><dd class="col-sm-9" th:text="${project.researchArea}">—</dd>
+                <dt class="col-sm-3">Industry</dt><dd class="col-sm-9" th:text="${project.industry}">—</dd>
+                <dt class="col-sm-3">Geography</dt><dd class="col-sm-9" th:text="${project.geography}">—</dd>
+                <dt class="col-sm-3">Research goal</dt><dd class="col-sm-9" th:text="${project.researchGoal}">—</dd>
+            </dl>
+            <a class="btn btn-outline-primary" href="/projects">Back to projects</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>
