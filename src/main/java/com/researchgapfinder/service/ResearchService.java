@@ -12,6 +12,8 @@ import java.util.*;
 public class ResearchService {
     private static final double NO_RESULTS_CONFIDENCE = 0.35;
     private static final double HAS_RESULTS_CONFIDENCE = 0.50;
+    private static final double DISCOVERED_GAP_CONFIDENCE = 0.55;
+    private static final double LIMITATION_EVIDENCE_RELEVANCE = 0.80;
     private final ProjectRepository projects;
     private final PaperRepository papers;
     private final PaperEvidenceRepository paperEvidence;
@@ -79,17 +81,35 @@ public class ResearchService {
         for (Paper paper : papers.findByProjectId(projectId)) {
             LlmProvider.PaperAnalysis analysis = llm.extract(paper);
             for (String limitation : analysis.limitations()) {
-                String title = "Unresolved limitation in " + paper.getTitle();
+                String title = "Unresolved limitation: " + shorten(limitation, 900);
                 boolean exists = gaps.findByProjectId(projectId).stream()
                         .anyMatch(gap -> gap.getTitle().equals(title));
                 if (exists) continue;
-                ResearchGap gap = gaps.save(new ResearchGap(project, GapType.METHODOLOGICAL_GAP,
-                        title, limitation, 0.55));
-                gapEvidence.save(new GapEvidence(gap, paper, EvidenceType.LIMITATION, 0.8, limitation));
+                ResearchGap gap = gaps.save(new ResearchGap(project, classifyGap(limitation),
+                        title, limitation, DISCOVERED_GAP_CONFIDENCE));
+                gapEvidence.save(new GapEvidence(gap, paper, EvidenceType.LIMITATION,
+                        LIMITATION_EVIDENCE_RELEVANCE, limitation));
                 discovered.add(gap);
             }
         }
         return discovered;
+    }
+
+    private GapType classifyGap(String limitation) {
+        String lower = limitation.toLowerCase();
+        if (lower.contains("variable") || lower.contains("measure")) return GapType.VARIABLE_GAP;
+        if (lower.contains("population") || lower.contains("sample")) return GapType.POPULATION_GAP;
+        if (lower.contains("geograph") || lower.contains("country") || lower.contains("region")) {
+            return GapType.GEOGRAPHIC_GAP;
+        }
+        if (lower.contains("theor")) return GapType.THEORETICAL_GAP;
+        if (lower.contains("time") || lower.contains("longitudinal")) return GapType.TEMPORAL_GAP;
+        if (lower.contains("context") || lower.contains("setting")) return GapType.CONTEXT_GAP;
+        return GapType.METHODOLOGICAL_GAP;
+    }
+
+    private String shorten(String value, int maxLength) {
+        return value.length() <= maxLength ? value : value.substring(0, maxLength - 1) + "…";
     }
 
     public List<GapEvidence> evidence(UUID gapId) {
