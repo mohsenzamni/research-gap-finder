@@ -79,11 +79,12 @@ public class ResearchService {
     public List<ResearchGap> discoverGaps(UUID projectId) {
         ResearchProject project = project(projectId);
         List<ResearchGap> discovered = new ArrayList<>();
+        List<ResearchGap> existingGaps = gaps.findByProjectId(projectId);
         for (Paper paper : papers.findByProjectId(projectId)) {
             LlmProvider.PaperAnalysis analysis = llm.extract(paper);
             for (String limitation : analysis.limitations()) {
                 String title = "Unresolved limitation: " + shorten(limitation, MAX_GAP_TITLE_CONTENT_LENGTH);
-                boolean exists = gaps.findByProjectId(projectId).stream()
+                boolean exists = existingGaps.stream()
                         .anyMatch(gap -> gap.getTitle().equals(title));
                 if (exists) continue;
                 ResearchGap gap = gaps.save(new ResearchGap(project, classifyGap(limitation),
@@ -91,6 +92,7 @@ public class ResearchService {
                 gapEvidence.save(new GapEvidence(gap, paper, EvidenceType.LIMITATION,
                         LIMITATION_EVIDENCE_RELEVANCE, limitation));
                 discovered.add(gap);
+                existingGaps.add(gap);
             }
         }
         return discovered;
@@ -121,7 +123,7 @@ public class ResearchService {
     @Transactional
     public ValidationResult validateGap(UUID gapId) {
         ResearchGap gap = gaps.findById(gapId).orElseThrow(() -> missing("gap", gapId));
-        String query = gap.getTitle() + " " + gap.getDescription();
+        String query = String.join(" ", gap.getTitle(), gap.getDescription()).trim();
         List<LiteratureSearchProvider.LiteratureRecord> results = literature.search(query);
         ValidationStatus status = results.isEmpty() ? ValidationStatus.PARTIALLY_VALIDATED : ValidationStatus.WEAK;
         String summary = results.isEmpty()
