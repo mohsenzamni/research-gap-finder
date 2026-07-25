@@ -41,7 +41,7 @@ public class DeterministicLlmProvider implements LlmProvider {
     }
 
     private String[] themes(String text) {
-        return java.util.Arrays.stream(text.toLowerCase().split("[^a-z]{3,}"))
+        return java.util.Arrays.stream(text.toLowerCase().split("[^a-z]+"))
                 .filter(word -> word.length() >= 5)
                 .distinct()
                 .limit(5)

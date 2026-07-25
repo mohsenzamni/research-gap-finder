@@ -15,6 +15,7 @@ com/researchgapfinder/literature/OpenAlexLiteratureSearchProvider.class
 com/researchgapfinder/domain/GapEvidence.class
 com/researchgapfinder/ai/LlmProvider.class
 com/researchgapfinder/domain/ResearchProject.class
+com/researchgapfinder/repository/GapEvidenceRepository.class
 com/researchgapfinder/api/ResearchController$IdeaRequest.class
 com/researchgapfinder/domain/ResearchGap.class
 com/researchgapfinder/service/ResearchService$PaperInput.class
