@@ -12,16 +12,17 @@ import java.util.*;
 public class ResearchService {
     private final ProjectRepository projects;
     private final PaperRepository papers;
+    private final PaperEvidenceRepository paperEvidence;
     private final GapRepository gaps;
     private final ValidationResultRepository validations;
     private final IdeaRepository ideas;
     private final LlmProvider llm;
     private final LiteratureSearchProvider literature;
 
-    public ResearchService(ProjectRepository projects, PaperRepository papers, GapRepository gaps,
+    public ResearchService(ProjectRepository projects, PaperRepository papers, PaperEvidenceRepository paperEvidence, GapRepository gaps,
                            ValidationResultRepository validations, IdeaRepository ideas,
                            LlmProvider llm, LiteratureSearchProvider literature) {
-        this.projects = projects; this.papers = papers; this.gaps = gaps; this.validations = validations;
+        this.projects = projects; this.papers = papers; this.paperEvidence = paperEvidence; this.gaps = gaps; this.validations = validations;
         this.ideas = ideas; this.llm = llm; this.literature = literature;
     }
 
@@ -40,7 +41,11 @@ public class ResearchService {
         paper.setAuthors(input.authors()); paper.setPublicationYear(input.publicationYear());
         paper.setDoi(input.doi()); paper.setSourceUrl(input.sourceUrl());
         paper.setAbstractText(input.abstractText()); paper.setFullText(input.fullText());
-        return papers.save(paper);
+        Paper saved = papers.save(paper);
+        paperEvidence.save(new PaperEvidence(saved, level,
+                input.fullText() != null && !input.fullText().isBlank() ? SourceType.USER_UPLOAD : SourceType.USER_INPUT,
+                input.sourceUrl()));
+        return saved;
     }
     public List<Paper> papers(UUID projectId) { return papers.findByProjectId(projectId); }
     public LlmProvider.PaperAnalysis analysePaper(UUID paperId) {
