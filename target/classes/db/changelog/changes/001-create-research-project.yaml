@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-research-project
+      author: research-gap-finder
+      changes:
+        - createTable:
+            tableName: research_project
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: research_domain
+                  type: VARCHAR(255)
+              - column:
+                  name: research_area
+                  type: VARCHAR(255)
+              - column:
+                  name: industry
+                  type: VARCHAR(255)
+              - column:
+                  name: geography
+                  type: VARCHAR(255)
+              - column:
+                  name: research_goal
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false

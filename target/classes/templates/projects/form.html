@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Create project')}"></head>
+<body class="bg-light">
+<nav th:replace="~{layout :: nav}"></nav>
+<main class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4">Create research project</h1>
+            <form class="card card-body shadow-sm" th:action="@{/projects}" th:object="${project}" method="post">
+                <div class="mb-3">
+                    <label class="form-label" for="name">Project name</label>
+                    <input class="form-control" id="name" th:field="*{name}" required>
+                    <div class="text-danger" th:errors="*{name}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="researchDomain">Research domain</label>
+                        <input class="form-control" id="researchDomain" th:field="*{researchDomain}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="researchArea">Research area</label>
+                        <input class="form-control" id="researchArea" th:field="*{researchArea}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="industry">Industry</label>
+                        <input class="form-control" id="industry" th:field="*{industry}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="geography">Geography</label>
+                        <input class="form-control" id="geography" th:field="*{geography}">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="researchGoal">Research goal</label>
+                    <textarea class="form-control" id="researchGoal" rows="4" th:field="*{researchGoal}"></textarea>
+                </div>
+                <div>
+                    <button class="btn btn-primary" type="submit">Save project</button>
+                    <a class="btn btn-link" href="/projects">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>
