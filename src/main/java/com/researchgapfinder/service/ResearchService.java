@@ -1,0 +1,90 @@
+package com.researchgapfinder.service;
+
+import com.researchgapfinder.ai.LlmProvider;
+import com.researchgapfinder.domain.*;
+import com.researchgapfinder.literature.LiteratureSearchProvider;
+import com.researchgapfinder.repository.*;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+import java.util.*;
+
+@Service
+public class ResearchService {
+    private final ProjectRepository projects;
+    private final PaperRepository papers;
+    private final GapRepository gaps;
+    private final ValidationResultRepository validations;
+    private final IdeaRepository ideas;
+    private final LlmProvider llm;
+    private final LiteratureSearchProvider literature;
+
+    public ResearchService(ProjectRepository projects, PaperRepository papers, GapRepository gaps,
+                           ValidationResultRepository validations, IdeaRepository ideas,
+                           LlmProvider llm, LiteratureSearchProvider literature) {
+        this.projects = projects; this.papers = papers; this.gaps = gaps; this.validations = validations;
+        this.ideas = ideas; this.llm = llm; this.literature = literature;
+    }
+
+    @Transactional
+    public ResearchProject createProject(ResearchProject project) { return projects.save(project); }
+    public ResearchProject project(UUID id) { return projects.findById(id).orElseThrow(() -> missing("project", id)); }
+    public List<ResearchProject> projects() { return projects.findAll(); }
+
+    @Transactional
+    public Paper addPaper(UUID projectId, PaperInput input) {
+        ResearchProject project = project(projectId);
+        EvidenceLevel level = input.fullText() != null && !input.fullText().isBlank()
+                ? EvidenceLevel.FULL_TEXT : input.abstractText() != null && !input.abstractText().isBlank()
+                ? EvidenceLevel.ABSTRACT : EvidenceLevel.METADATA;
+        Paper paper = new Paper(project, input.title(), level);
+        paper.setAuthors(input.authors()); paper.setPublicationYear(input.publicationYear());
+        paper.setDoi(input.doi()); paper.setSourceUrl(input.sourceUrl());
+        paper.setAbstractText(input.abstractText()); paper.setFullText(input.fullText());
+        return papers.save(paper);
+    }
+    public List<Paper> papers(UUID projectId) { return papers.findByProjectId(projectId); }
+    public LlmProvider.PaperAnalysis analysePaper(UUID paperId) {
+        return llm.extract(papers.findById(paperId).orElseThrow(() -> missing("paper", paperId)));
+    }
+
+    @Transactional
+    public ResearchGap addGap(UUID projectId, GapInput input) {
+        return gaps.save(new ResearchGap(project(projectId), input.type(), input.title(), input.description(),
+                Math.max(0, Math.min(1, input.confidence()))));
+    }
+    public List<ResearchGap> gaps(UUID projectId) { return gaps.findByProjectId(projectId); }
+
+    @Transactional
+    public ValidationResult validateGap(UUID gapId) {
+        ResearchGap gap = gaps.findById(gapId).orElseThrow(() -> missing("gap", gapId));
+        String query = gap.getTitle() + " " + gap.getDescription();
+        List<LiteratureSearchProvider.LiteratureRecord> results = literature.search(query);
+        ValidationStatus status = results.isEmpty() ? ValidationStatus.PARTIALLY_VALIDATED : ValidationStatus.WEAK;
+        String summary = results.isEmpty()
+                ? "No external records were returned; the candidate gap remains uncertain and requires further search."
+                : "External literature returned " + results.size() + " record(s); inspect them before treating this candidate as a gap.";
+        ValidationResult result = validations.save(new ValidationResult(gap, status, results.isEmpty() ? 0.35 : 0.5,
+                summary, List.of(query)));
+        gap.setStatus(status == ValidationStatus.PARTIALLY_VALIDATED ? GapStatus.PARTIALLY_VALIDATED : GapStatus.WEAK);
+        gaps.save(gap);
+        return result;
+    }
+    public List<ValidationResult> validations(UUID gapId) { return validations.findByGapId(gapId); }
+
+    @Transactional
+    public ResearchIdea addIdea(UUID projectId, IdeaInput input) {
+        ResearchGap gap = gaps.findById(input.gapId()).orElseThrow(() -> missing("gap", input.gapId()));
+        if (!gap.getProject().getId().equals(projectId)) throw new IllegalArgumentException("Gap belongs to another project");
+        return ideas.save(new ResearchIdea(project(projectId), gap, input.title(), input.researchQuestion(),
+                input.rationale(), Math.max(0, Math.min(100, input.score()))));
+    }
+    public List<ResearchIdea> ideas(UUID projectId) { return ideas.findByProjectIdOrderByScoreDesc(projectId); }
+
+    private RuntimeException missing(String type, UUID id) {
+        return new NoSuchElementException(type + " not found: " + id);
+    }
+    public record PaperInput(String title, String authors, Integer publicationYear, String doi, String sourceUrl,
+                             String abstractText, String fullText) {}
+    public record GapInput(GapType type, String title, String description, double confidence) {}
+    public record IdeaInput(UUID gapId, String title, String researchQuestion, String rationale, double score) {}
+}
