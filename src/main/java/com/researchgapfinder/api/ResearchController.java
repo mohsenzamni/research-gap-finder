@@ -43,7 +43,7 @@ public class ResearchController {
 
     @PostMapping("/projects/{projectId}/gaps")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResearchGap addGap(@PathVariable UUID projectId, @RequestBody GapRequest request) {
+    public ResearchGap addGap(@PathVariable UUID projectId, @Valid @RequestBody GapRequest request) {
         return service.addGap(projectId, new ResearchService.GapInput(request.type(), request.title(), request.description(), request.confidence()));
     }
     @GetMapping("/projects/{projectId}/gaps") public List<ResearchGap> gaps(@PathVariable UUID projectId) { return service.gaps(projectId); }
@@ -52,7 +52,7 @@ public class ResearchController {
 
     @PostMapping("/projects/{projectId}/ideas")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResearchIdea addIdea(@PathVariable UUID projectId, @RequestBody IdeaRequest request) {
+    public ResearchIdea addIdea(@PathVariable UUID projectId, @Valid @RequestBody IdeaRequest request) {
         return service.addIdea(projectId, new ResearchService.IdeaInput(request.gapId(), request.title(),
                 request.researchQuestion(), request.rationale(), request.score()));
     }
@@ -63,6 +63,7 @@ public class ResearchController {
                                  String availableData, String researchGoal) {}
     public record PaperRequest(@NotBlank String title, String authors, Integer publicationYear, String doi,
                                String sourceUrl, String abstractText, String fullText) {}
-    public record GapRequest(GapType type, String title, String description, double confidence) {}
-    public record IdeaRequest(UUID gapId, String title, String researchQuestion, String rationale, double score) {}
+    public record GapRequest(GapType type, @NotBlank String title, @NotBlank String description, double confidence) {}
+    public record IdeaRequest(UUID gapId, @NotBlank String title, @NotBlank String researchQuestion,
+                              String rationale, double score) {}
 }

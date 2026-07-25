@@ -10,6 +10,8 @@ import java.util.*;
 
 @Service
 public class ResearchService {
+    private static final double PARTIAL_VALIDATION_CONFIDENCE = 0.35;
+    private static final double WEAK_VALIDATION_CONFIDENCE = 0.50;
     private final ProjectRepository projects;
     private final PaperRepository papers;
     private final PaperEvidenceRepository paperEvidence;
@@ -64,7 +66,7 @@ public class ResearchService {
     @Transactional
     public ResearchGap addGap(UUID projectId, GapInput input) {
         return gaps.save(new ResearchGap(project(projectId), input.type(), input.title(), input.description(),
-                Math.max(0, Math.min(1, input.confidence()))));
+                clamp(input.confidence(), 0, 1)));
     }
     public List<ResearchGap> gaps(UUID projectId) { return gaps.findByProjectId(projectId); }
 
@@ -77,7 +79,8 @@ public class ResearchService {
         String summary = results.isEmpty()
                 ? "No external records were returned; the candidate gap remains uncertain and requires further search."
                 : "External literature returned " + results.size() + " record(s); inspect them before treating this candidate as a gap.";
-        ValidationResult result = validations.save(new ValidationResult(gap, status, results.isEmpty() ? 0.35 : 0.5,
+        ValidationResult result = validations.save(new ValidationResult(gap, status,
+                results.isEmpty() ? PARTIAL_VALIDATION_CONFIDENCE : WEAK_VALIDATION_CONFIDENCE,
                 summary, List.of(query)));
         gap.setStatus(status == ValidationStatus.PARTIALLY_VALIDATED ? GapStatus.PARTIALLY_VALIDATED : GapStatus.WEAK);
         gaps.save(gap);
@@ -88,14 +91,20 @@ public class ResearchService {
     @Transactional
     public ResearchIdea addIdea(UUID projectId, IdeaInput input) {
         ResearchGap gap = gaps.findById(input.gapId()).orElseThrow(() -> missing("gap", input.gapId()));
-        if (!gap.getProject().getId().equals(projectId)) throw new IllegalArgumentException("Gap belongs to another project");
+        if (!gap.getProject().getId().equals(projectId)) {
+            throw new IllegalArgumentException("Gap " + input.gapId() + " belongs to project "
+                    + gap.getProject().getId() + " but was accessed via project " + projectId);
+        }
         return ideas.save(new ResearchIdea(project(projectId), gap, input.title(), input.researchQuestion(),
-                input.rationale(), Math.max(0, Math.min(100, input.score()))));
+                input.rationale(), clamp(input.score(), 0, 100)));
     }
     public List<ResearchIdea> ideas(UUID projectId) { return ideas.findByProjectIdOrderByScoreDesc(projectId); }
 
     private RuntimeException missing(String type, UUID id) {
         return new NoSuchElementException(type + " not found: " + id);
+    }
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
     public record PaperInput(String title, String authors, Integer publicationYear, String doi, String sourceUrl,
                              String abstractText, String fullText) {}
